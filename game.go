@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const imagesPerGame = 25
+const imagesPerGame = 20
 
 type Team int
 
@@ -189,9 +189,9 @@ func newGame(id string, imagePaths []string, state GameState) *Game {
 
 	// Pick a random permutation of team assignments.
 	var teamAssignments []Team
-	teamAssignments = append(teamAssignments, Red.Repeat(8)...)
-	teamAssignments = append(teamAssignments, Blue.Repeat(8)...)
-	teamAssignments = append(teamAssignments, Neutral.Repeat(7)...)
+	teamAssignments = append(teamAssignments, Red.Repeat(7)...)
+	teamAssignments = append(teamAssignments, Blue.Repeat(7)...)
+	teamAssignments = append(teamAssignments, Neutral.Repeat(4)...)
 	teamAssignments = append(teamAssignments, Black)
 	teamAssignments = append(teamAssignments, game.StartingTeam)
 
