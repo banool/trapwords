@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path"
 	"sort"
 	"sync"
@@ -17,16 +18,17 @@ import (
 type Server struct {
 	Server http.Server
 
-	tpl   *template.Template
-	jslib assets.Bundle
-	js    assets.Bundle
-	css   assets.Bundle
+	tpl    *template.Template
+	jslib  assets.Bundle
+	js     assets.Bundle
+	css    assets.Bundle
+	images assets.Bundle
 
 	gameIDWords []string
 
 	mu    sync.Mutex
 	games map[string]*Game
-	words []string
+	imagePaths []string
 	mux   *http.ServeMux
 }
 
@@ -39,7 +41,7 @@ func (s *Server) getGame(gameID, stateID string) (*Game, bool) {
 	if !ok {
 		return nil, false
 	}
-	g = newGame(gameID, s.words, state)
+	g = newGame(gameID, s.imagePaths, state)
 	s.games[gameID] = g
 	return g, true
 }
@@ -62,7 +64,7 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	g = newGame(gameID, s.words, randomState())
+	g = newGame(gameID, s.imagePaths, randomState())
 	s.games[gameID] = g
 	writeGame(rw, g)
 }
@@ -140,7 +142,7 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	g := newGame(request.GameID, s.words, randomState())
+	g := newGame(request.GameID, s.imagePaths, randomState())
 	s.games[request.GameID] = g
 	writeGame(rw, g)
 }
@@ -185,10 +187,22 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	d, err := dictionary.Load("assets/original.txt")
+
+	var imagesAssetPath = "assets/images"
+	s.images, err = assets.Development(imagesAssetPath)
 	if err != nil {
 		return err
 	}
+	// Hardcoding 25 is easier than defining a constants file.
+	if len(s.images.RelativePaths()) < 25 {
+		fmt.Fprintf(os.Stderr,
+			"Error: You need at least %d images in %s\n",
+			25,
+			imagesAssetPath,
+		)
+		os.Exit(1)
+	}
+
 	s.tpl, err = template.New("index").Parse(tpl)
 	if err != nil {
 		return err
@@ -217,14 +231,15 @@ func (s *Server) Start() error {
 	s.mux.Handle("/js/lib/", http.StripPrefix("/js/lib/", s.jslib))
 	s.mux.Handle("/js/", http.StripPrefix("/js/", s.js))
 	s.mux.Handle("/css/", http.StripPrefix("/css/", s.css))
+	s.mux.Handle("/images/", http.StripPrefix("/images/", s.images))
 	s.mux.HandleFunc("/", s.handleIndex)
 
 	gameIDs = dictionary.Filter(gameIDs, func(s string) bool { return len(s) > 3 })
 	s.gameIDWords = gameIDs.Words()
 
 	s.games = make(map[string]*Game)
-	s.words = d.Words()
-	sort.Strings(s.words)
+	s.imagePaths = s.images.RelativePaths()
+	sort.Strings(s.imagePaths)
 	s.Server.Handler = s.mux
 
 	go func() {
@@ -232,6 +247,7 @@ func (s *Server) Start() error {
 			s.cleanupOldGames()
 		}
 	}()
+	fmt.Printf("Server running!\n")
 	return s.Server.ListenAndServe()
 }
 

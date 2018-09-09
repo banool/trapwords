@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const wordsPerGame = 25
+const imagesPerGame = 25
 
 type Team int
 
@@ -88,7 +88,7 @@ func decodeGameState(s string) (GameState, bool) {
 func randomState() GameState {
 	return GameState{
 		Seed:     rand.Int63(),
-		Revealed: make([]bool, wordsPerGame),
+		Revealed: make([]bool, imagesPerGame),
 	}
 }
 
@@ -98,7 +98,7 @@ type Game struct {
 	CreatedAt    time.Time `json:"created_at"`
 	StartingTeam Team      `json:"starting_team"`
 	WinningTeam  *Team     `json:"winning_team,omitempty"`
-	Words        []string  `json:"words"`
+	ImagePaths   []string  `json:"words"`
 	Layout       []Team    `json:"layout"`
 }
 
@@ -165,24 +165,24 @@ func (g *Game) CurrentTeam() Team {
 	return g.StartingTeam.Other()
 }
 
-func newGame(id string, words []string, state GameState) *Game {
+func newGame(id string, imagePaths []string, state GameState) *Game {
 	rnd := rand.New(rand.NewSource(state.Seed))
 	game := &Game{
 		ID:           id,
 		CreatedAt:    time.Now(),
 		StartingTeam: Team(rnd.Intn(2)) + Red,
-		Words:        make([]string, 0, wordsPerGame),
-		Layout:       make([]Team, 0, wordsPerGame),
+		ImagePaths:   make([]string, 0, imagesPerGame),
+		Layout:       make([]Team, 0, imagesPerGame),
 		GameState:    state,
 	}
 
-	// Pick 25 random words.
+	// Pick 25 random images.
 	used := map[string]struct{}{}
-	for len(used) < wordsPerGame {
-		w := words[rnd.Intn(len(words))]
+	for len(used) < imagesPerGame {
+		w := imagePaths[rnd.Intn(len(imagePaths))]
 		if _, ok := used[w]; !ok {
 			used[w] = struct{}{}
-			game.Words = append(game.Words, w)
+			game.ImagePaths = append(game.ImagePaths, w)
 		}
 	}
 
