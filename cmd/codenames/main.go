@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/banool/codenames"
+	"github.com/banool/codenames-pictures"
 )
 
-const DEFAULT_PORT = "9091"
+const DEFAULT_PORT = "9001"
 
 func main() {
 	if len(os.Args) > 2{
