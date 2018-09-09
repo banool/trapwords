@@ -221,7 +221,9 @@ window.Game = React.createClass({
                              className={"cell " + this.state.game.layout[idx] + " " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")}
                              onClick={(e) => this.guess(e, idx, w)}
                         >
-                            <span className="word">{w}</span>
+                            <span className="word">
+			        <img className={"imgcell " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")} src={w}/>
+			    </span>
                         </div>
                     )
                   )}

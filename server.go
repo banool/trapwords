@@ -239,6 +239,9 @@ func (s *Server) Start() error {
 
 	s.games = make(map[string]*Game)
 	s.imagePaths = s.images.RelativePaths()
+	for index, element := range s.imagePaths {
+		s.imagePaths[index] = "images/" + element
+	}
 	sort.Strings(s.imagePaths)
 	s.Server.Handler = s.mux
 

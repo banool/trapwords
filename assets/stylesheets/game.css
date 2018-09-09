@@ -95,9 +95,9 @@
 
 .cell {
     width: 130px;
-    height: 90px;
+    height: 130px;
     box-sizing: border-box;
-    line-height: 90px;
+    line-height: 130px;
     margin: 5px;
     display: inline-block;
     text-align: center;
@@ -110,6 +110,14 @@
 .cell .word {
     vertical-align: middle;
     display: inline-block;
+}
+
+.cell img {
+    width: 100%;
+}
+
+.player .board .imgcell.revealed {
+    opacity: .6;
 }
 
 .cell { background: #E8E8E8; }

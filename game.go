@@ -98,6 +98,7 @@ type Game struct {
 	CreatedAt    time.Time `json:"created_at"`
 	StartingTeam Team      `json:"starting_team"`
 	WinningTeam  *Team     `json:"winning_team,omitempty"`
+	// Leaving the json as words makes it all easier.
 	ImagePaths   []string  `json:"words"`
 	Layout       []Team    `json:"layout"`
 }
