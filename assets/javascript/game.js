@@ -223,6 +223,7 @@ window.Game = React.createClass({
                         >
                             <span className="word">
 			        <img className={"imgcell " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")} src={w}/>
+			        <img className={"overlay " + (this.state.codemaster ? "codemaster" : "player")} src={"other/" + (this.state.game.layout[idx]) + ".png"} />
 			    </span>
                         </div>
                     )

@@ -23,6 +23,7 @@ type Server struct {
 	js     assets.Bundle
 	css    assets.Bundle
 	images assets.Bundle
+	other  assets.Bundle
 
 	gameIDWords []string
 
@@ -219,6 +220,10 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
+	s.other, err = assets.Development("assets/other")
+	if err != nil {
+		return err
+	}
 
 	s.mux = http.NewServeMux()
 
@@ -232,6 +237,7 @@ func (s *Server) Start() error {
 	s.mux.Handle("/js/", http.StripPrefix("/js/", s.js))
 	s.mux.Handle("/css/", http.StripPrefix("/css/", s.css))
 	s.mux.Handle("/images/", http.StripPrefix("/images/", s.images))
+	s.mux.Handle("/other/", http.StripPrefix("/other/", s.other))
 	s.mux.HandleFunc("/", s.handleIndex)
 
 	gameIDs = dictionary.Filter(gameIDs, func(s string) bool { return len(s) > 3 })

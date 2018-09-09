@@ -5,9 +5,9 @@
 
 #share {
     color: #888;
-    margin-bottom: 3em;
+    margin-bottom: 2em;
     font-size: 0.8em;
-    padding-bottom: 2em;
+    padding-bottom: 1em;
     border-bottom: 1px #EEE solid;
     font-family: system, -apple-system, BlinkMacSystemFont,
         "Helvetica Neue", "Lucida Grande";
@@ -97,7 +97,6 @@
     width: 130px;
     height: 130px;
     box-sizing: border-box;
-    line-height: 130px;
     margin: 5px;
     display: inline-block;
     text-align: center;
@@ -110,15 +109,26 @@
 .cell .word {
     vertical-align: middle;
     display: inline-block;
+    position: relative;
 }
 
+/* https://stackoverflow.com/a/1997397/3846032 */
 .cell img {
     width: 100%;
+    top: 0px;
+    left: 0px;
 }
 
-.player .board .imgcell.revealed {
+.board .imgcell.revealed {
+    position: relative;
     opacity: .6;
 }
+
+.overlay {
+    position: absolute;
+}
+.overlay.codemaster { opacity: 1; }
+.overlay.player { opacity: 0 }
 
 .cell { background: #E8E8E8; }
 
