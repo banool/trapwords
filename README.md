@@ -59,6 +59,7 @@ You can optionally specify a port (the default is 9001):
 Now go follow the instructions for adding images below.
 
 ## Loading up images
-If you followed the steps above, you should now have a `codenames` binary with an `assets` folder. You can add your own images to `assets/images`. They should be square, but beyond that you can really do what you want. It's okay for the image to have transparent backgrounds, both work :) There need to be at least 25 images, but of course the more the better! 🏙🛣🛤🏭🖼🗾🌁🌃🌄🌅🌆🌇🌈🌉🌌🌠🎆🎇🎑!!!
+If you followed the steps above, you should now have a `codenames` binary with an `assets` folder. You can add your own images to `assets/images`. You can also add further sub-directories, it's scanned recursively. They should be square, but beyond that you can really do what you want. It's okay for the image to have transparent backgrounds, both work :) There need to be at least 20 images, but of course the more the better! 🏙🛣🛤🏭🖼🗾🌁🌃🌄🌅🌆🌇🌈🌉🌌🌠🎆🎇🎑!!!
+
 
 

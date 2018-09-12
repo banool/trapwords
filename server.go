@@ -194,11 +194,11 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	// Hardcoding 25 is easier than defining a constants file.
-	if len(s.images.RelativePaths()) < 25 {
+	// Hardcoding 20 is easier than defining a constants file.
+	if len(s.images.RelativePaths()) < 20 {
 		fmt.Fprintf(os.Stderr,
 			"Error: You need at least %d images in %s\n",
-			25,
+			20,
 			imagesAssetPath,
 		)
 		os.Exit(1)
