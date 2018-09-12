@@ -56,6 +56,11 @@
     align-items: center;
 }
 
+#mode-toggle a {
+    margin-right: auto;
+    margin-left: 5px;
+}
+
 #mode-toggle button {
     padding: 5px;
     border: 1px #DDD solid;
