@@ -129,13 +129,34 @@
     opacity: .6;
 }
 
+.cell:hover {
+    /* 
+        TODO It would be nice to have it scale up to its original size
+        instead (with a cap so it doesn't get too big) but that's harder
+        than you would expect.
+    */
+    transform: scale(2);
+    transition: all 100ms linear;
+    z-index:999;
+    opacity: 1.0;
+}
+/* Undo hover settings for mobile */
+@media (hover: none) {
+	.cell:hover {
+		transform: none;
+		z-index: none;
+	}
+}
+
 .overlay {
     position: absolute;
+    /* https://stackoverflow.com/questions/9738984/css-hover-passes-through-elements-to-activate-hover-on-covered-element */
+    pointer-events: none;
 }
 .overlay.codemaster { opacity: 1; }
 .overlay.player { opacity: 0 }
 
-.cell { background: #E8E8E8; }
+.cell { background: #E8E8E8; z-index: 1; }
 
 .codemaster .red.hidden-word { color: #D13030; }
 .codemaster .blue.hidden-word { color: #4183CC; }
