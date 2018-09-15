@@ -66,12 +66,18 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
         splitted := strings.Split(gameID, delimiter)
         gameID, imagesLink = splitted[0], splitted[1]
     }
+    imagesLink = "https://dport.me/split/links.txt"
     fmt.Printf("gameID: %s, imagesLink: %s\n", gameID, imagesLink)
     fmt.Printf("blah: %v\n", s.imagePaths)
     if (imagesLink != "") {
-        imagePaths := []string{"https://dport.me/split/1-piece-0.jpg","https://dport.me/split/1-piece-10.jpg","https://dport.me/split/1-piece-11.jpg","https://dport.me/split/1-piece-12.jpg","https://dport.me/split/1-piece-13.jpg","https://dport.me/split/1-piece-14.jpg","https://dport.me/split/1-piece-15.jpg","https://dport.me/split/1-piece-16.jpg","https://dport.me/split/1-piece-17.jpg","https://dport.me/split/1-piece-18.jpg","https://dport.me/split/1-piece-19.jpg","https://dport.me/split/1-piece-1.jpg","https://dport.me/split/1-piece-2.jpg","https://dport.me/split/1-piece-3.jpg","https://dport.me/split/1-piece-4.jpg","https://dport.me/split/1-piece-5.jpg","https://dport.me/split/1-piece-6.jpg","https://dport.me/split/1-piece-7.jpg","https://dport.me/split/1-piece-8.jpg","https://dport.me/split/1-piece-9.jpg","https://dport.me/split/2-piece-0.jpg","https://dport.me/split/2-piece-10.jpg","https://dport.me/split/2-piece-11.jpg","https://dport.me/split/2-piece-12.jpg","https://dport.me/split/2-piece-13.jpg","https://dport.me/split/2-piece-14.jpg","https://dport.me/split/2-piece-15.jpg","https://dport.me/split/2-piece-16.jpg","https://dport.me/split/2-piece-17.jpg","https://dport.me/split/2-piece-18.jpg","https://dport.me/split/2-piece-19.jpg","https://dport.me/split/2-piece-1.jpg","https://dport.me/split/2-piece-2.jpg","https://dport.me/split/2-piece-3.jpg","https://dport.me/split/2-piece-4.jpg","https://dport.me/split/2-piece-5.jpg","https://dport.me/split/2-piece-6.jpg","https://dport.me/split/2-piece-7.jpg","https://dport.me/split/2-piece-8.jpg","https://dport.me/split/2-piece-9.jpg","https://dport.me/split/3-piece-0.jpg","https://dport.me/split/3-piece-10.jpg","https://dport.me/split/3-piece-11.jpg","https://dport.me/split/3-piece-12.jpg","https://dport.me/split/3-piece-13.jpg","https://dport.me/split/3-piece-14.jpg","https://dport.me/split/3-piece-15.jpg","https://dport.me/split/3-piece-16.jpg","https://dport.me/split/3-piece-17.jpg","https://dport.me/split/3-piece-18.jpg","https://dport.me/split/3-piece-19.jpg","https://dport.me/split/3-piece-1.jpg","https://dport.me/split/3-piece-2.jpg","https://dport.me/split/3-piece-3.jpg","https://dport.me/split/3-piece-4.jpg","https://dport.me/split/3-piece-5.jpg","https://dport.me/split/3-piece-6.jpg","https://dport.me/split/3-piece-7.jpg","https://dport.me/split/3-piece-8.jpg","https://dport.me/split/3-piece-9.jpg"}
+        var imagePaths []string
+        if (strings.HasSuffix(imagesLink, "txt")) {
+            imageAsset, _ := dictionary.Load(imagesLink)
+            imagePaths = imageAsset.Words()
+        }
         s.imagePaths = imagePaths
     }
+
     fmt.Printf("egg: %v\n", s.imagePaths)
 	g, ok := s.getGame(gameID, req.Form.Get("state_id"))
 	if ok {
