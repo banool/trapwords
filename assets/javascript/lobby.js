@@ -15,14 +15,24 @@ window.Lobby = React.createClass({
         this.setState({newGameName: e.target.value});
     },
 
+    newGameImagesLinkChange: function(e) {
+        this.setState({newGameImagesLink: e.target.value});
+    },
+
     handleNewGame: function(e) {
         e.preventDefault();
         if (!this.state.newGameName) {
             return;
         }
 
-        $.post('/game/'+this.state.newGameName, this.joinGame);
+        let delimiter = "^";
+        var params = this.state.newGameName;
+        if (this.state.newGameImagesLink) {
+            params += delimiter + this.state.newGameImagesLink;
+        }
+        $.post('/game/'+params, this.joinGame);
         this.setState({newGameName: ''});
+        this.setState({newGameImagesLink: ''});
     },
 
     joinGame: function(g) {
@@ -45,6 +55,8 @@ window.Lobby = React.createClass({
                         <input type="text" id="game-name" autoFocus
                             onChange={this.newGameTextChange} value={this.state.newGameName} />
                         <button onClick={this.handleNewGame}>Go</button>
+                        <input type="text" id="user-images" placeholder="Link to folder of images..."
+                            onChange={this.newGameImagesLinkChange} value={this.state.newGameImagesLink} />
                     </form>
                 </div>
             </div>
