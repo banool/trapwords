@@ -54,8 +54,16 @@ window.Lobby = React.createClass({
                         <input type="text" id="game-name" autoFocus
                             onChange={this.newGameTextChange} value={this.state.newGameName} />
                         <button onClick={this.handleNewGame}>Go</button>
-                        <input type="text" id="user-images" placeholder="Link to folder of images..."
+                        <p className ="intro">
+                            You can use your own images using the field below. Valid options:
+                            <ul>
+                                <li>Link to a folder of images.</li>
+                                <li>Link to a text file with URLs for individual images, one per line.</li>
+                            </ul>
+                        </p>
+                        <input className="full" type="text" id="user-images" placeholder="Link to folder of images or text file..."
                             onChange={this.newGameImagesLinkChange} value={this.state.newGameImagesLink} />
+                            <p>If you're joining a game that already exists, this field will be ignored. Have fun!!!</p>
                     </form>
                 </div>
             </div>
