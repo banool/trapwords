@@ -25,12 +25,11 @@ window.Lobby = React.createClass({
             return;
         }
 
-        let delimiter = "^";
-        var params = this.state.newGameName;
-        if (this.state.newGameImagesLink) {
-            params += delimiter + this.state.newGameImagesLink;
-        }
-        $.post('/game/'+params, this.joinGame);
+        $.post(
+            '/game/'+this.state.newGameName,
+            {"newGameImagesLink": this.state.newGameImagesLink}
+        );
+        $.post('/game/'+this.state.newGameName, this.joinGame);
         this.setState({newGameName: ''});
         this.setState({newGameImagesLink: ''});
     },

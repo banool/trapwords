@@ -48,6 +48,42 @@ func (s *Server) getGame(gameID, stateID string) (*Game, bool) {
 	return g, true
 }
 
+func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]string) /*error*/ {
+    var imagePaths []string
+    if (imagesLink != "") {
+        fmt.Printf("Using custom images from %s\n", imagesLink)
+        if (strings.HasSuffix(imagesLink, "txt")) {
+            imageAsset, err := dictionary.Load(imagesLink)
+            if err != nil {
+                http.Error(rw, "Problem with link for text file of image paths", 400)
+                //return err
+            }
+            imagePaths = imageAsset.Words()
+        } else {
+            imageAsset, err := assets.Development(imagesLink)
+            if err != nil {
+                http.Error(rw, "Problem with link to directory of images", 400)
+                //return err
+            }
+            // TODO Fix the error shit in this function.
+            // TODO I want AbsolutePaths()
+            // TODO Figure out why it adds this random hash to the end of the fname
+            imagePaths = imageAsset.RelativePaths()
+        }
+    } else {
+        fmt.Printf("Using default images\n")
+        imagePaths = s.imagePaths
+    }
+
+    if (len(imagePaths) == 0) {
+        http.Error(rw, "Error loading in images :(", 400)
+        //return error
+    }
+
+    return imagePaths
+}
+
+
 // GET /game/<id>
 func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
 	s.mu.Lock()
@@ -58,34 +94,18 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "Error decoding query string", 400)
 		return
     }
-    var delimiter = "^"
-    var imagesLink string;
 
 	gameID := path.Base(req.URL.Path)
-    if (strings.ContainsAny(gameID, delimiter)) {
-        splitted := strings.Split(gameID, delimiter)
-        gameID, imagesLink = splitted[0], splitted[1]
-    }
-    imagesLink = "https://dport.me/split/links.txt"
-    fmt.Printf("gameID: %s, imagesLink: %s\n", gameID, imagesLink)
-    fmt.Printf("blah: %v\n", s.imagePaths)
-    if (imagesLink != "") {
-        var imagePaths []string
-        if (strings.HasSuffix(imagesLink, "txt")) {
-            imageAsset, _ := dictionary.Load(imagesLink)
-            imagePaths = imageAsset.Words()
-        }
-        s.imagePaths = imagePaths
-    }
-
-    fmt.Printf("egg: %v\n", s.imagePaths)
 	g, ok := s.getGame(gameID, req.Form.Get("state_id"))
 	if ok {
 		writeGame(rw, g)
 		return
 	}
 
-	g = newGame(gameID, s.imagePaths, randomState())
+    imagePaths := s.getImagePaths(rw, req.Form.Get("newGameImagesLink"))
+
+    fmt.Printf("imagePaths %+v\n", imagePaths)
+    g = newGame(gameID, imagePaths, randomState())
 	s.games[gameID] = g
 	writeGame(rw, g)
 }
