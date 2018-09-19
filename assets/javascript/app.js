@@ -25,7 +25,7 @@ window.App = React.createClass({
         return (
             <div id="application">
                 <div id="topbar">
-                    <a href={"http://" + window.location.host}>
+                    <a href={"https://" + window.location.host}>
                         <h1>Codenames Pictures</h1>
                     </a>
                 </div>
