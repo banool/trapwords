@@ -2,6 +2,7 @@ package codenames
 
 import (
     "encoding/json"
+    "errors"
     "fmt"
     "html/template"
     "net/http"
@@ -48,24 +49,23 @@ func (s *Server) getGame(gameID, stateID string) (*Game, bool) {
     return g, true
 }
 
-func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]string) /*error*/ {
+func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]string, error) {
     var imagePaths []string
     if (imagesLink != "") {
-        fmt.Printf("Using custom images from %s\n", imagesLink)
+        fmt.Printf("Trying to use custom images from %s\n", imagesLink)
         if (strings.HasSuffix(imagesLink, "txt")) {
             imageAsset, err := dictionary.Load(imagesLink)
             if err != nil {
                 http.Error(rw, "Problem with link for text file of image paths", 400)
-                //return err
+                return nil, err
             }
             imagePaths = imageAsset.Words()
         } else {
             imageAsset, err := assets.Development(imagesLink)
             if err != nil {
                 http.Error(rw, "Problem with link to directory of images", 400)
-                //return err
+                return nil, err
             }
-            // TODO Fix the error shit in this function.
             // TODO I want AbsolutePaths()
             // TODO Figure out why it adds this random hash to the end of the fname
             imagePaths = imageAsset.RelativePaths()
@@ -77,10 +77,10 @@ func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]str
 
     if (len(imagePaths) == 0) {
         http.Error(rw, "Error loading in images :(", 400)
-        //return error
+        return nil, errors.New("Could not enumerate images\n")
     }
 
-    return imagePaths
+    return imagePaths, nil
 }
 
 
@@ -102,7 +102,11 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
         return
     }
 
-    imagePaths := s.getImagePaths(rw, req.Form.Get("newGameImagesLink"))
+    imagePaths, err := s.getImagePaths(rw, req.Form.Get("newGameImagesLink"))
+    if err != nil {
+        fmt.Printf("Could not load in custom images\n")
+        return
+    }
 
     fmt.Printf("imagePaths %+v\n", imagePaths)
     g = newGame(gameID, imagePaths, randomState())

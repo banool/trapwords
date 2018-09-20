@@ -1,3 +1,19 @@
+
+class ImageLinkStatusComponent extends React.Component {
+    render() {
+        if (this.props.good == null) {
+            return <p className="message"></p>;
+        }
+        if (this.props.good == true) {
+            return <p className="message good">That's it, let's go!</p>;
+        }
+        if (this.props.good == false) {
+            return <p className="message bad">There was something wrong with your image link :( Try again?</p>;
+        }
+    }
+};
+    
+
 window.Lobby = React.createClass({
     propTypes: {
         gameSelected:   React.PropTypes.func,
@@ -8,6 +24,7 @@ window.Lobby = React.createClass({
         return {
             newGameName: this.props.defaultGameID,
             selectedGame: null,
+            newGameImagesLinkGood: null,
         };
     },
 
@@ -25,13 +42,21 @@ window.Lobby = React.createClass({
             return;
         }
 
+        // This double post thing is janky but it works. The second
+        // post request hooks into the game we made with the first
+        // post call using the custom images link.
         $.post(
             '/game/'+this.state.newGameName,
-            {"newGameImagesLink": this.state.newGameImagesLink}
-        );
-        $.post('/game/'+this.state.newGameName, this.joinGame);
-        this.setState({newGameName: ''});
-        this.setState({newGameImagesLink: ''});
+            {"newGameImagesLink": this.state.newGameImagesLink},
+        ).done(function(resp) {
+            console.log(resp);
+            this.setState({newGameImagesLinkGood: true});
+            $.post('/game/'+this.state.newGameName, this.joinGame);
+            this.setState({newGameName: ''});
+            this.setState({newGameImagesLink: ''});
+        }.bind(this)).fail(function(resp) {
+            this.setState({newGameImagesLinkGood: false}); 
+        }.bind(this));
     },
 
     joinGame: function(g) {
@@ -55,16 +80,16 @@ window.Lobby = React.createClass({
                             onChange={this.newGameTextChange} value={this.state.newGameName} />
                         <button onClick={this.handleNewGame}>Go</button>
                         <p className ="intro">
-                            You can use your own images using the field below. Valid options:
+                            You can use your own images using the field below. Valid options:</p>
                             <ul>
                                 <li>Link to a folder of images.</li>
                                 <li>Link to a text file with URLs for individual images, one per line.</li>
                             </ul>
-                        </p>
                         <input className="full" type="text" id="user-images" placeholder="Link to folder of images or text file..."
                             onChange={this.newGameImagesLinkChange} value={this.state.newGameImagesLink} />
-                            <p>If you're joining a game that already exists, this field will be ignored. Have fun!!!</p>
                     </form>
+                    <p>If you're joining a game that already exists, this field will be ignored. Have fun!!!</p>
+                    <ImageLinkStatusComponent good={this.state.newGameImagesLinkGood} />
                 </div>
             </div>
         );
