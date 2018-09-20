@@ -2,12 +2,15 @@ h2 {
     font-size: 1.1em;
 }
 
-p.intro {
+p, li {
   line-height: 1.5em;
-  margin-top: 3em;
   text-align: justify;
   font-family: verdana;
   font-size: 0.9em;
+}
+
+p.intro {
+  margin-top: 3em;
 }
 
 p.message {
