@@ -98,6 +98,10 @@
     margin-left: 10px;
 }
 
+.player .board .hidden-word { cursor: pointer; }
+
+.board .neutral.revealed { background: #EDE2CC; }
+
 .cell {
     width: 130px;
     height: 130px;
@@ -105,11 +109,10 @@
     margin: 5px;
     display: inline-block;
     text-align: center;
+    background: #E8E8E8;
+    z-index: 1;
+    position: relative;
 }
-
-.player .board .hidden-word { cursor: pointer; }
-
-.board .neutral.revealed { background: #EDE2CC; }
 
 .cell .word {
     vertical-align: middle;
@@ -124,29 +127,21 @@
     left: 0px;
 }
 
-.board .imgcell.revealed {
-    position: relative;
-    opacity: .6;
-}
-
 .cell:hover {
-    /* 
-        TODO It would be nice to have it scale up to its original size
-        instead (with a cap so it doesn't get too big) but that's harder
-        than you would expect.
-    */
     transform: scale(2);
-    transition: all 100ms linear;
-    z-index:999;
+    transition: all 75ms linear;
+    z-index: 2;
     opacity: 1.0;
 }
 /* Undo hover settings for mobile */
 @media (hover: none) {
-	.cell:hover {
-		transform: none;
-		z-index: none;
-	}
+    .cell:hover {
+        transform: none;
+        z-index: none;
+    }
 }
+
+.board .imgcell.revealed { opacity: .6; }
 
 .overlay {
     position: absolute;
@@ -155,8 +150,6 @@
 }
 .overlay.codemaster { opacity: 1; }
 .overlay.player { opacity: 0 }
-
-.cell { background: #E8E8E8; z-index: 1; }
 
 .codemaster .red.hidden-word { color: #D13030; }
 .codemaster .blue.hidden-word { color: #4183CC; }
