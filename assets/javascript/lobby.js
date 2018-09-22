@@ -80,12 +80,9 @@ window.Lobby = React.createClass({
                             onChange={this.newGameTextChange} value={this.state.newGameName} />
                         <button onClick={this.handleNewGame}>Go</button>
                         <p className ="intro">
-                            You can use your own images using the field below. Valid options:</p>
-                            <ul>
-                                <li>Link to a folder of images.</li>
-                                <li>Link to a text file with URLs for individual images, one per line.</li>
-                            </ul>
-                        <input className="full" type="text" id="user-images" placeholder="Link to folder of images or text file..."
+                            You can use your own images using the field below. See <a href="https://github.com/banool/codenames-pictures#loading-up-images">the GitHub readme</a> for information about valid link options.
+                        </p>
+                        <input className="full" type="text" id="user-images" placeholder="Link to text file or folder of images..."
                             onChange={this.newGameImagesLinkChange} value={this.state.newGameImagesLink} />
                     </form>
                     <p>If you're joining a game that already exists, this field will be ignored. Have fun!!!</p>
