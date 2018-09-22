@@ -2,7 +2,7 @@ package codenames
 
 import (
     "encoding/json"
-    "errors"
+    "io/ioutil"
     "fmt"
     "html/template"
     "net/http"
@@ -50,37 +50,79 @@ func (s *Server) getGame(gameID, stateID string) (*Game, bool) {
 }
 
 func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]string, error) {
-    var imagePaths []string
-    if (imagesLink != "") {
-        fmt.Printf("Trying to use custom images from %s\n", imagesLink)
-        if (strings.HasSuffix(imagesLink, "txt")) {
-            imageAsset, err := dictionary.Load(imagesLink)
-            if err != nil {
-                http.Error(rw, "Problem with link for text file of image paths", 400)
-                return nil, err
-            }
-            imagePaths = imageAsset.Words()
+    if (imagesLink == "") {
+        // No link was given, use the server's default images.
+        return s.imagePaths, nil
+    }
+
+    fmt.Printf("Trying to use custom images from %s\n", imagesLink)
+    rs, err := http.Get(imagesLink)
+    if err != nil {
+        http.Error(rw, "Problem with provided link", 400)
+        return nil, err
+    }
+    defer rs.Body.Close()
+
+    bodyBytes, err := ioutil.ReadAll(rs.Body)
+    if err != nil {
+        http.Error(rw, "Problem with provided link", 400)
+        return nil, err
+    }
+    bodyString := string(bodyBytes)
+
+    if (strings.HasSuffix(imagesLink, "txt")) {
+        fmt.Printf("Text file based source\n")
+
+        // We assume that the text file is links line by line.
+        // They can either be full paths like:
+        // https://server.com/image.jpg
+        // Or paths relative to the text file location like:
+        // image.jpg
+        // Which refers to https://server.com/image.jpg
+        // if the text file was for example here:
+        // https://server.com/directorylisting.txt
+
+        links := strings.Split(bodyString, "\n")
+
+        // Testing if the links are relative or absolute site links
+        var absolute bool
+        if (strings.Contains(links[0], "http")) {
+            absolute = true
         } else {
-            imageAsset, err := assets.Development(imagesLink)
-            if err != nil {
-                http.Error(rw, "Problem with link to directory of images", 400)
-                return nil, err
+            absolute = false
+        }
+
+        if (absolute) {
+            return links, nil
+        } else {
+            splitted := strings.Split(imagesLink, "/")
+            base := strings.Join(splitted[:len(splitted)-1], "/")
+            for index, link := range links {
+                links[index] = base + "/" + link
             }
-            // TODO I want AbsolutePaths()
-            // TODO Figure out why it adds this random hash to the end of the fname
-            imagePaths = imageAsset.RelativePaths()
+            return links, nil
         }
     } else {
-        fmt.Printf("Using default images\n")
-        imagePaths = s.imagePaths
-    }
+        fmt.Printf("Directory based source\n")
 
-    if (len(imagePaths) == 0) {
-        http.Error(rw, "Error loading in images :(", 400)
-        return nil, errors.New("Could not enumerate images\n")
-    }
+        // The user has given us a non-text file.
+        // We assume it's a directory listing, specifically the one nginx produces.
 
-    return imagePaths, nil
+        splitted := strings.Split(imagesLink, "/")
+        base := strings.Join(splitted[:len(splitted)-1], "/")
+        lines := strings.Split(bodyString, "\n")
+        var links []string
+        for _, line := range lines {
+            if (!strings.Contains(line, "<a href=\"")) {
+                continue
+            }
+            relativeLink := strings.Split(strings.Split(" " + line, "<a href=\"")[1], "\">")[0]
+            links = append(links, base + "/" + relativeLink)
+        }
+        return links, nil
+    }
+    // We should never get to here.
+    return nil, nil
 }
 
 
@@ -108,7 +150,6 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
         return
     }
 
-    fmt.Printf("imagePaths %+v\n", imagePaths)
     g = newGame(gameID, imagePaths, randomState())
     s.games[gameID] = g
     writeGame(rw, g)
