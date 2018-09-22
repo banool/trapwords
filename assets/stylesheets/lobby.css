@@ -2,20 +2,35 @@ h2 {
     font-size: 1.1em;
 }
 
-p.intro {
+p, li {
   line-height: 1.5em;
-  margin-bottom: 3em;
   text-align: justify;
   font-family: verdana;
   font-size: 0.9em;
 }
 
+p.intro {
+  margin-top: 3em;
+}
+
+p.message {
+}
+
+p.message.good {
+  color: green;
+}
+
+p.message.bad {
+  color: red;
+}
+
 #available-games {
     width: 500px;
-    margin: 0 auto;
+    margin: 0 auto 100px auto;
     font-family: 'Courier New', monospace;
 }
 
+/*
 #available-games ul {
     margin: 0;
     padding: 0;
@@ -33,18 +48,22 @@ p.intro {
     background: #A5E5FA;
     cursor: pointer;
 }
+*/
 
 #new-game {
-    margin: 0 auto 100px auto;
 }
 
-#new-game input#game-name {
+#new-game input {
     height: 50px;
     width: 350px;
     padding: 5px 10px;
     font-size: 1.3em;
     border: 1px #DDD solid;
     letter-spacing: 0.1em;
+}
+
+#new-game input.full {
+    width: 100%;
 }
 
 #new-game button {

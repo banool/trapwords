@@ -61,5 +61,36 @@ Now go follow the instructions for adding images below.
 ## Loading up images
 If you followed the steps above, you should now have a `codenames` binary with an `assets` folder. You can add your own images to `assets/images`. You can also add further sub-directories, it's scanned recursively. They should be square, but beyond that you can really do what you want. It's okay for the image to have transparent backgrounds, both work :) There need to be at least 20 images, but of course the more the better! 🏙🛣🛤🏭🖼🗾🌁🌃🌄🌅🌆🌇🌈🌉🌌🌠🎆🎇🎑!!!
 
+There is support for using remote images! You specify the link for this when creating the game in the lobby. There are 3 types of supported links:
 
+### Text file with absolute links
+```
+https://mysite.com/links.txt
+```
+This is a file with absolute website links in it, one per line. For example:
+```
+https://site.com/image.jpg
+http://images.org/cat.png
+```
+The way I check for it being absolute is whether the link on the first line contains `http`. Janky I know but Go is hard okay.
 
+### Text file with relative links
+```
+https://mysite.com/links.txt
+```
+This is a file with links relative to the location of the text file, one per line. For example:
+```
+image.jpg
+cat.png
+```
+These will resolve to:
+```
+https://mysite.com/image.jpg
+https://mysite.com/cat.png
+```
+
+### Link to directory listing
+```
+https://mysite.com/images/
+```
+This has the worst support. I try to parse a directory listing (like what is produced by nginx for a directory of files) and extract any link by looking for anchor (`<a>`) tags.
