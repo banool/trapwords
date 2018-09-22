@@ -127,7 +127,7 @@
     left: 0px;
 }
 
-.cell:hover {
+.cell.expander:hover {
     transform: scale(2);
     transition: all 75ms linear;
     z-index: 2;
@@ -209,7 +209,7 @@
 }
 
 .settings-content {
-    width: 240px;
+    width: 320px;
     margin: 80px auto;
 }
 
@@ -223,6 +223,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 1em;
 }
 
 .toggle {

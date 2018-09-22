@@ -1,7 +1,7 @@
-var settingToggles = [{
-  name: 'Color-blind mode',
-  setting: 'colorBlind',
-}]
+var settingToggles = [
+    {name: 'Color-blind mode', setting: 'colorBlind'},
+    {name: 'Expand on mouse-over', setting: 'expandOnMouseOver'},
+]
 
 window.Game = React.createClass({
     propTypes: {
@@ -218,7 +218,7 @@ window.Game = React.createClass({
                   {this.state.game.words.map((w, idx) =>
                     (
                         <div for={idx}
-                             className={"cell " + this.state.game.layout[idx] + " " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")}
+                             className={"cell " + (this.state.settings.expandOnMouseOver ? "expander " : "") + this.state.game.layout[idx] + " " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")}
                              onClick={(e) => this.guess(e, idx, w)}
                         >
                             <span className="word">
