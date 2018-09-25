@@ -1,6 +1,7 @@
 var settingToggles = [
     {name: 'Color-blind mode', setting: 'colorBlind'},
     {name: 'Expand on mouse-over', setting: 'expandOnMouseOver'},
+    {name: 'Stretch images to fit square', setting: 'fitImagesToDiv'},
 ]
 
 window.Game = React.createClass({
@@ -221,10 +222,9 @@ window.Game = React.createClass({
                              className={"cell " + (this.state.settings.expandOnMouseOver ? "expander " : "") + this.state.game.layout[idx] + " " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")}
                              onClick={(e) => this.guess(e, idx, w)}
                         >
-                            <span className="word">
-			        <img className={"imgcell " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")} src={w}/>
+			        <img className={"imgcell " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")} style={{objectFit: this.state.settings.fitImagesToDiv ? "fill" : "contain" }} src={w}/>
+                             
 			        <img className={"overlay " + (this.state.codemaster ? "codemaster" : "player")} src={"other/" + (this.state.game.layout[idx]) + ".png"} />
-			    </span>
                         </div>
                     )
                   )}
