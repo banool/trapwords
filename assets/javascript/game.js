@@ -1,7 +1,7 @@
 var settingToggles = [
-    {name: 'Color-blind mode', setting: 'colorBlind'},
-    {name: 'Expand on mouse-over', setting: 'expandOnMouseOver'},
-    {name: 'Stretch images to fit square', setting: 'fitImagesToDiv'},
+    {name: 'Color-blind mode', setting: 'colorBlind', defaultValue: false},
+    {name: 'Expand on mouse-over', setting: 'expandOnMouseOver', defaultValue: false},
+    {name: 'Stretch images to fit square', setting: 'fitImagesToDiv', defaultValue: true},
 ]
 
 window.Game = React.createClass({
@@ -9,12 +9,21 @@ window.Game = React.createClass({
         gameID: React.PropTypes.string,
     },
 
+    getDefaultSettings: function() {
+        var settings = {};
+        settingToggles.forEach(function(s) {
+	    settings[s.setting] = s.defaultValue;
+        });
+        console.log(settings);
+        return settings;
+    },
+
     getInitialSettings: function() {
         try {
             var settings = localStorage.getItem('settings');
-            return JSON.parse(settings) || {};
+            return JSON.parse(settings) || this.getDefaultSettings();
         } catch(e) {
-            return {};
+            return this.getDefaultSettings();
         }
     },
 
