@@ -42,6 +42,8 @@ window.Lobby = React.createClass({
             return;
         }
 
+        this.setState({newGameImagesLinkGood: null});
+
         // This double post thing is janky but it works. The second
         // post request hooks into the game we made with the first
         // post call using the custom images link.

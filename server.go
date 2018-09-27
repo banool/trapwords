@@ -147,6 +147,13 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
     imagePaths, err := s.getImagePaths(rw, req.Form.Get("newGameImagesLink"))
     if err != nil {
         fmt.Printf("Could not load in custom images\n")
+        http.Error(rw, "Unknown error encountered with custom images", 400)
+        return
+    }
+
+    if len(imagePaths) < 20 {
+        fmt.Printf("Insufficient images in custom source\n")
+        http.Error(rw, "Insufficient images (20 needed) available in custom source", 400)
         return
     }
 
