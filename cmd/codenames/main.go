@@ -13,7 +13,7 @@ import (
 const DEFAULT_PORT = "9001"
 
 func main() {
-	if len(os.Args) > 2{
+	if len(os.Args) > 2 {
 		fmt.Fprintf(os.Stderr, "Too many arguments\n")
 		os.Exit(1)
 	}
@@ -37,4 +37,3 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 	}
 }
-
