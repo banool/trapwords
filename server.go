@@ -83,24 +83,32 @@ func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]str
 		// https://server.com/directorylisting.txt
 
 		links := strings.Split(bodyString, "\n")
+		validLinks := make([]string, 0, len(links))
+
+		// Remove any zero-length links.
+		for _, link := range links {
+			if len(strings.TrimSpace(link)) > 0 {
+				validLinks = append(validLinks, link)
+			}
+		}
 
 		// Testing if the links are relative or absolute site links
 		var absolute bool
-		if strings.Contains(links[0], "http") {
+		if strings.Contains(validLinks[0], "http") {
 			absolute = true
 		} else {
 			absolute = false
 		}
 
 		if absolute {
-			return links, nil
+			return validLinks, nil
 		} else {
 			splitted := strings.Split(imagesLink, "/")
 			base := strings.Join(splitted[:len(splitted)-1], "/")
-			for index, link := range links {
-				links[index] = base + "/" + link
+			for index, link := range validLinks {
+				validLinks[index] = base + "/" + link
 			}
-			return links, nil
+			return validLinks, nil
 		}
 	} else {
 		fmt.Printf("Directory based source\n")
