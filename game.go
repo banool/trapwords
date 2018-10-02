@@ -99,8 +99,8 @@ type Game struct {
 	StartingTeam Team      `json:"starting_team"`
 	WinningTeam  *Team     `json:"winning_team,omitempty"`
 	// Leaving the json as words makes it all easier.
-	ImagePaths   []string  `json:"words"`
-	Layout       []Team    `json:"layout"`
+	ImagePaths []string `json:"words"`
+	Layout     []Team   `json:"layout"`
 }
 
 func (g *Game) checkWinningCondition() {
