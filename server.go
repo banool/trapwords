@@ -234,7 +234,16 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	g := newGame(request.GameID, s.imagePaths, randomState())
+	// Find the existing game so we can fetch the images it used.
+	g, exists := s.games[request.GameID]
+
+	if !exists {
+		http.Error(rw, "Invalid game", 404)
+		return
+	}
+
+	// Create a new game with the same ID and images from the past game but with a random state.
+	g = newGame(request.GameID, g.ImagePaths, randomState())
 	s.games[request.GameID] = g
 	writeGame(rw, g)
 }
