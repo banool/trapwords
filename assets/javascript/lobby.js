@@ -44,28 +44,23 @@ window.Lobby = React.createClass({
 
         this.setState({newGameImagesLinkGood: null});
 
-        // This double post thing is janky but it works. The second
-        // post request hooks into the game we made with the first
-        // post call using the custom images link.
         $.post(
             '/game/'+this.state.newGameName,
             {"newGameImagesLink": this.state.newGameImagesLink},
-        ).done(function(resp) {
-            console.log(resp);
-            this.setState({newGameImagesLinkGood: true});
-            $.post('/game/'+this.state.newGameName, this.joinGame);
-            this.setState({newGameName: ''});
-            this.setState({newGameImagesLink: ''});
-        }.bind(this)).fail(function(resp) {
+        ).done(function(game) {
+            this.setState({
+                newGameName: '',
+                selectedGame: game,
+                newGameImagesLinkGood: true,
+                newGameImagesLink: '',
+            });
+
+            if (this.props.gameSelected) {
+                this.props.gameSelected(game);
+            }
+        }.bind(this)).fail(function() {
             this.setState({newGameImagesLinkGood: false}); 
         }.bind(this));
-    },
-
-    joinGame: function(g) {
-        this.setState({selectedGame: g});
-        if (this.props.gameSelected) {
-            this.props.gameSelected(g);
-        }
     },
 
     render: function() {
