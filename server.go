@@ -250,8 +250,8 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Create a new game with the same ID and images from the past game but with a random state.
-	g = newGame(request.GameID, g.ImagePaths, randomState())
+	// Create a new game with the same ID and source images from the past game but with a random state.
+	g = newGame(request.GameID, g.Images, randomState())
 	s.games[request.GameID] = g
 	writeGame(rw, g)
 }

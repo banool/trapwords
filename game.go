@@ -98,9 +98,9 @@ type Game struct {
 	CreatedAt    time.Time `json:"created_at"`
 	StartingTeam Team      `json:"starting_team"`
 	WinningTeam  *Team     `json:"winning_team,omitempty"`
-	// Leaving the json as words makes it all easier.
-	ImagePaths []string `json:"words"`
-	Layout     []Team   `json:"layout"`
+	Images       []string  `json:"-"`
+	RoundImages  []string  `json:"words"`
+	Layout       []Team    `json:"layout"`
 }
 
 func (g *Game) checkWinningCondition() {
@@ -172,7 +172,8 @@ func newGame(id string, imagePaths []string, state GameState) *Game {
 		ID:           id,
 		CreatedAt:    time.Now(),
 		StartingTeam: Team(rnd.Intn(2)) + Red,
-		ImagePaths:   make([]string, 0, imagesPerGame),
+		Images:       imagePaths,
+		RoundImages:  make([]string, 0, imagesPerGame),
 		Layout:       make([]Team, 0, imagesPerGame),
 		GameState:    state,
 	}
@@ -183,7 +184,7 @@ func newGame(id string, imagePaths []string, state GameState) *Game {
 		w := imagePaths[rnd.Intn(len(imagePaths))]
 		if _, ok := used[w]; !ok {
 			used[w] = struct{}{}
-			game.ImagePaths = append(game.ImagePaths, w)
+			game.RoundImages = append(game.RoundImages, w)
 		}
 	}
 
