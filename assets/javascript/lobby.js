@@ -1,5 +1,5 @@
 
-class ImageLinkStatusComponent extends React.Component {
+class WordLinkStatusComponent extends React.Component {
     render() {
         if (this.props.good == null) {
             return <p className="message"></p>;
@@ -8,11 +8,11 @@ class ImageLinkStatusComponent extends React.Component {
             return <p className="message good">That's it, let's go!</p>;
         }
         if (this.props.good == false) {
-            return <p className="message bad">There was something wrong with your image link :( Try again?</p>;
+            return <p className="message bad">There was something wrong with your link :( Try again?</p>;
         }
     }
 };
-    
+
 
 window.Lobby = React.createClass({
     propTypes: {
@@ -24,7 +24,7 @@ window.Lobby = React.createClass({
         return {
             newGameName: this.props.defaultGameID,
             selectedGame: null,
-            newGameImagesLinkGood: null,
+            newGameWordsLinkGood: null,
         };
     },
 
@@ -32,8 +32,8 @@ window.Lobby = React.createClass({
         this.setState({newGameName: e.target.value});
     },
 
-    newGameImagesLinkChange: function(e) {
-        this.setState({newGameImagesLink: e.target.value});
+    newGameWordsLinkChange: function(e) {
+        this.setState({newGameWordsLink: e.target.value});
     },
 
     handleNewGame: function(e) {
@@ -42,24 +42,24 @@ window.Lobby = React.createClass({
             return;
         }
 
-        this.setState({newGameImagesLinkGood: null});
+        this.setState({newGameWordsLinkGood: null});
 
         $.post(
             '/game/'+this.state.newGameName,
-            {"newGameImagesLink": this.state.newGameImagesLink},
+            {"newGameWordsLink": this.state.newGameWordsLink},
         ).done(function(game) {
             this.setState({
                 newGameName: '',
                 selectedGame: game,
-                newGameImagesLinkGood: true,
-                newGameImagesLink: '',
+                newGameWordsLinkGood: true,
+                newGameWordsLink: '',
             });
 
             if (this.props.gameSelected) {
                 this.props.gameSelected(game);
             }
         }.bind(this)).fail(function() {
-            this.setState({newGameImagesLinkGood: false}); 
+            this.setState({newGameWordsLinkGood: false});
         }.bind(this));
     },
 
@@ -69,7 +69,7 @@ window.Lobby = React.createClass({
                 <div id="available-games">
                     <form id="new-game">
                         <p className="intro">
-                           Play Codenames Pictures online across multiple devices on a shared board.
+                           Play Trapwords online across multiple devices.
                            To create a new game or join an existing
                            game, enter a game identifier and click 'GO'.
                         </p>
@@ -77,13 +77,13 @@ window.Lobby = React.createClass({
                             onChange={this.newGameTextChange} value={this.state.newGameName} />
                         <button onClick={this.handleNewGame}>Go</button>
                         <p className ="intro">
-                            You can use your own images using the field below. See <a href="https://github.com/banool/codenames-pictures#loading-up-images">the GitHub readme</a> for information about valid link options.
+                            You can use your own words using the field below. See <a href="https://github.com/banool/codenames-pictures#loading-up-words">the GitHub readme</a> for information about valid link options.
                         </p>
-                        <input className="full" type="text" id="user-images" placeholder="Link to text file or folder of images..."
-                            onChange={this.newGameImagesLinkChange} value={this.state.newGameImagesLink} />
+                        <input className="full" type="text" id="user-words" placeholder="Link to text file of words"
+                            onChange={this.newGameWordsLinkChange} value={this.state.newGameWordsLink} />
                     </form>
                     <p>If you're joining a game that already exists, this field will be ignored. Have fun!!!</p>
-                    <ImageLinkStatusComponent good={this.state.newGameImagesLinkGood} />
+                    <WordLinkStatusComponent good={this.state.newGameWordsLinkGood} />
                 </div>
             </div>
         );

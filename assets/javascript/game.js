@@ -4,6 +4,78 @@ var settingToggles = [
     {name: 'Stretch images to fit square', setting: 'fitImagesToDiv', defaultValue: true},
 ]
 
+class StatusComponent extends React.Component {
+    render() {
+        // Trapwords selection phase.
+        if (this.props.phase == "trapwords") {
+            return <p>Both teams are thinking of Trapwords 🤔🤔🤔</p>;
+        }
+        if (this.props.phase == "blue") {
+            if (this.props.guessing) {
+                return <p>Blue team's Cluegiver is trying to get their team to guess their word!</p>;
+            } else {
+                return <p>Blue team's Cluegiver is about to try to get their team to guess their word</p>;
+            }
+        }
+        if (this.props.phase == "red") {
+            if (this.props.guessing) {
+                return <p>Red team's Cluegiver is trying to get their team to guess their word!</p>;
+            } else {
+                return <p>Red team's Cluegiver is about to try to get their team to guess their word</p>;
+            }
+        }
+    }
+};
+
+class WordComponent extends React.Component {
+    // Required props: team, blueWord, redWord, phase, cluegiver, guessing
+    render() {
+        if (this.props.team == null) {
+            return <p>Choose a team!</p>;
+        }
+        if (this.props.phase == "trapwords") {
+            if (this.props.team == "blue") {
+                return <p>Blue team, you are thinking of trapwords for {this.props.blueWord}</p>;
+            }
+            if (this.props.team == "red") {
+                return <p>Read team, you are thinking of trapwords for {this.props.redWord}</p>;
+            }
+        }
+        if (this.props.phase == "blue") {
+            if (this.props.team == "blue") {
+                if (this.props.cluegiver) {
+                    return <p>Blue team Cluegiver, try to get your team to guess the word {this.props.redWord}. Careful for Trapwords!</p>;
+                } else {
+                    if (this.props.guessing) {
+                        return <p>Blue team, try to guess your Cluegiver's word!</p>;
+                    } else {
+                        return <p>Blue team, get ready to guess your Cluegiver's word!</p>;
+                    }
+                }
+            }
+            if (this.props.team == "red") {
+                return <p>Red team, the Blue Cluegiver is trying to make their team guess the word {this.props.redWord}. Listen out for your trapwords!</p>;
+            }
+        }
+        if (this.props.phase == "red") {
+            if (this.props.team == "red") {
+                if (this.props.cluegiver) {
+                    return <p>Red team Cluegiver, try to get your team to guess the word {this.props.blueWord}. Careful for Trapwords!</p>;
+                } else {
+                    if (this.props.guessing) {
+                        return <p>Red team, try to guess your Cluegiver's word!</p>;
+                    } else {
+                        return <p>Red team, get ready to guess your Cluegiver's word!</p>;
+                    }
+                }
+            }
+            if (this.props.team == "blue") {
+                return <p>Blue team, the Red Cluegiver is trying to make their team guess the word {this.props.blueWord}. Listen out for your trapwords!</p>;
+            }
+        }
+    }
+};
+
 window.Game = React.createClass({
     propTypes: {
         gameID: React.PropTypes.string,
@@ -40,7 +112,9 @@ window.Game = React.createClass({
             mounted: true,
             settings: this.getInitialSettings(),
             mode: 'game',
-            codemaster: false,
+            team: null,
+            cluegiver: false,
+            guessing: false,
         };
     },
 
@@ -76,58 +150,51 @@ window.Game = React.createClass({
 
         $.get(refreshURL, (data) => {
             if (this.state.game && data.created_at != this.state.game.created_at) {
-                this.setState({codemaster: false});
+                this.setState({team: null});
             }
             this.setState({game: data});
         });
         setTimeout(this.refresh, 3000);
     },
 
-    toggleRole: function(e, role) {
+    setRole: function(e, role) {
         e.preventDefault();
-        this.setState({codemaster: role=='codemaster'});
+        this.setState({team: role});
     },
 
-    guess: function(e, idx, word) {
-        e.preventDefault();
-        if (this.state.codemaster) {
-            return; // ignore if codemaster view
-        }
-        if (this.state.game.revealed[idx]) {
-            return; // ignore if already revealed
-        }
-        if (this.state.game.winning_team) {
-            return; // ignore if game is over
-        }
-        $.post('/guess', JSON.stringify({
+    currentPhase: function() {
+        // The server will allow the round to only ever be 0 to 5.
+        let round = this.state.game.round;
+        // Trapwords selection phase.
+        if (round == 0) { return "trapwords"; }
+        // The blue team cluegiver is about to give clues for their word.
+        if (round == 1) { return "blue"; }
+        // The blue team cluegiver gives clues for their word.
+        if (round == 2) { return "blue"; }
+        // The red team cluegiver is about to give clues for their word.
+        if (round == 3) { return "red"; }
+        // The red team cluegiver gives clues for their word.
+        if (round == 4) { return "red"; }
+        // Trapwords selection phase.
+        if (round == 5) { return "trapwords"; }
+        // The red team cluegiver gives clues for their word first this time.
+        if (round == 6) { return "red"; }
+        if (round == 7) { return "red"; }
+        // Now the blue team cluegiver gives clues for their word.
+        if (round == 8) { return "blue"; }
+        if (round == 9) { return "blue"; }
+    },
+
+    nextPhase: function() {
+        $.post('/end-turn', JSON.stringify({
             game_id: this.state.game.id,
             state_id: this.state.game.state_id,
-            index: idx,
         }), (g) => { this.setState({game: g}); });
+        console.log(this.state.game.round);
     },
 
-    currentTeam: function() {
-        if (this.state.game.round % 2 == 0) {
-            return this.state.game.starting_team;
-        }
-        return this.state.game.starting_team == 'red' ? 'blue' : 'red';
-    },
-
-    remaining: function(color) {
-        var count = 0;
-        for (var i = 0; i < this.state.game.revealed.length; i++) {
-            if (this.state.game.revealed[i]) {
-                continue;
-            }
-            if (this.state.game.layout[i] == color) {
-                count++;
-            }
-        }
-        return count;
-    },
-
-    endTurn: function() {
-        $.post('/end-turn', JSON.stringify({
+    trapwordsChosen: function() {
+        $.post('/trapwords-chosen', JSON.stringify({
             game_id: this.state.game.id,
             state_id: this.state.game.state_id,
         }), (g) => { this.setState({game: g}); });
@@ -136,7 +203,7 @@ window.Game = React.createClass({
     nextGame: function(e) {
         e.preventDefault();
         $.post('/next-game', JSON.stringify({game_id: this.state.game.id}),
-              (g) => { this.setState({game: g, codemaster: false}) });
+              (g) => { this.setState({game: g, cluegiver: false}) });
     },
 
     toggleSettings: function(e) {
@@ -188,19 +255,17 @@ window.Game = React.createClass({
             );
         }
 
-        let status, statusClass;
-        if (this.state.game.winning_team) {
-            statusClass = this.state.game.winning_team + ' win';
-            status = this.state.game.winning_team + ' wins!';
-        } else {
-            statusClass = this.currentTeam();
-            status = this.currentTeam() + "'s turn";
+        let nextPhaseButtonText;
+        if (this.currentPhase() == "trapwords") {
+            nextPhaseButtonText = "Click when both teams have chosen trapwords";
         }
-
-        let endTurnButton;
-        if (!this.state.game.winning_team && !this.state.codemaster) {
-            endTurnButton = (<button onClick={(e) => this.endTurn(e)} id="end-turn-btn">End {this.currentTeam()}&#39;s turn</button>)
+        if (this.currentPhase() == "blue") {
+            nextPhaseButtonText = "Blue team Cluegiver, click here when you're ready";
         }
+        if (this.currentPhase() == "red") {
+            nextPhaseButtonText = "Red team Cluegiver, click here when you're ready";
+        }
+        var nextPhaseButton = (<button onClick={(e) => this.nextPhase(e)} id="end-turn-btn">{nextPhaseButtonText}</button>)
 
         let otherTeam = 'blue';
         if (this.state.game.starting_team == 'blue') {
@@ -208,45 +273,38 @@ window.Game = React.createClass({
         }
 
         return (
-            <div id="game-view" className={(this.state.codemaster ? "codemaster" : "player") + this.extraClasses()}>
+            <div id="game-view" className={(this.state.cluegiver ? "cluegiver" : "player") + this.extraClasses()}>
                 <div id="share">
                   Send this link to friends: <a className="url" href={window.location.href}>{window.location.href}</a>
                 </div>
-                <div id="status-line" className={statusClass}>
-                    <div id="status" className="status-text">{status}</div>
+                <div id="status-line" className={this.currentPhase()}>
+                    <div id="status" className="status-text">
+                        <StatusComponent phase={this.currentPhase()} guessing={this.state.guessing}/>
+                    </div>
                 </div>
                 <div id="button-line">
-                    <div id="remaining">
-                        <span className={this.state.game.starting_team+"-remaining"}>{this.remaining(this.state.game.starting_team)}</span>
-                        &nbsp;&ndash;&nbsp;
-                        <span className={otherTeam + "-remaining"}>{this.remaining(otherTeam)}</span>
-                    </div>
-                    {endTurnButton}
+                    {nextPhaseButton}
                     <div className="clear"></div>
                 </div>
                 <div className="board">
-                  {this.state.game.words.map((w, idx) =>
-                    (
-                        <div for={idx}
-                             className={"cell " + (this.state.settings.expandOnMouseOver ? "expander " : "") + this.state.game.layout[idx] + " " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")}
-                             onClick={(e) => this.guess(e, idx, w)}
-                        >
-			        <img className={"imgcell " + (this.state.game.revealed[idx] ? "revealed" : "hidden-word")} style={{objectFit: this.state.settings.fitImagesToDiv ? "fill" : "contain" }} src={w}/>
-                             
-			        <img className={"overlay " + (this.state.codemaster ? "codemaster" : "player")} src={"other/" + (this.state.game.layout[idx]) + ".png"} />
-                        </div>
-                    )
-                  )}
+                  <WordComponent
+                      team={this.state.team}
+                      blueWord={this.state.game.words[0]}
+                      redWord={this.state.game.words[1]}
+                      phase={this.currentPhase()}
+                      cluegiver={this.state.cluegiver}
+                      guessing={this.state.game.guessing}
+                  />
                 </div>
-                <form id="mode-toggle" className={this.state.codemaster ? "codemaster-selected" : "player-selected"}>
-		    <a href="https://github.com/banool/codenames-pictures"><svg width="30" height="30" aria-labelledby="simpleicons-github-icon" role="img" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><title id="simpleicons-github-icon">GitHub icon</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+                <form id="mode-toggle" className={this.state.cluegiver ? "cluegiver-selected" : "player-selected"}>
+		    <a href="https://github.com/banool/trapwords"><svg width="30" height="30" aria-labelledby="simpleicons-github-icon" role="img" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><title id="simpleicons-github-icon">GitHub icon</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
                     <button onClick={(e) => this.toggleSettings(e)} className="gear">
                       <svg width="30" height="30" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M22.3344 4.86447L24.31 8.23766C21.9171 9.80387 21.1402 12.9586 22.5981 15.4479C23.038 16.1989 23.6332 16.8067 24.3204 17.2543L22.2714 20.7527C20.6682 19.9354 18.6888 19.9151 17.0088 20.8712C15.3443 21.8185 14.3731 23.4973 14.2734 25.2596H10.3693C10.3241 24.4368 10.087 23.612 9.64099 22.8504C8.16283 20.3266 4.93593 19.4239 2.34593 20.7661L0.342913 17.3461C2.85907 15.8175 3.70246 12.5796 2.21287 10.0362C1.74415 9.23595 1.09909 8.59835 0.354399 8.14386L2.34677 4.74208C3.95677 5.5788 5.95446 5.60726 7.64791 4.64346C9.31398 3.69524 10.2854 2.0141 10.3836 0.25H14.267C14.2917 1.11932 14.5297 1.99505 15.0012 2.80013C16.4866 5.33635 19.738 6.23549 22.3344 4.86447ZM15.0038 17.3703C17.6265 15.8776 18.5279 12.5685 17.0114 9.97937C15.4963 7.39236 12.1437 6.50866 9.52304 8.00013C6.90036 9.4928 5.99896 12.8019 7.5154 15.391C9.03058 17.978 12.3832 18.8617 15.0038 17.3703Z" transform="translate(12.7548) rotate(30)" fill="#EEE" stroke="#BBB" stroke-width="0.5"/>
                       </svg>
                     </button>
-                    <button onClick={(e) => this.toggleRole(e, 'player')} className="player">Player</button>
-                    <button onClick={(e) => this.toggleRole(e, 'codemaster')} className="codemaster">Spymaster</button>
+                    <button onClick={(e) => this.setRole(e, 'blue')} className="blue">Blue Team</button>
+                    <button onClick={(e) => this.setRole(e, 'red')} className="red">Red Team</button>
                     <button onClick={(e) => this.nextGame(e)} id="next-game-btn">Next game</button>
                 </form>
             </div>

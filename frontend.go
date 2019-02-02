@@ -1,4 +1,4 @@
-package codenames
+package trapwords
 
 import (
 	"math/rand"
@@ -11,7 +11,7 @@ const tpl = `
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Codenames Pictures - Play Online</title>
+        <title>Trapwords - Play Online</title>
         <script src="/js/lib/browser.min.js"></script>
         <script src="/js/lib/react.min.js"></script>
         <script src="/js/lib/react-dom.min.js"></script>

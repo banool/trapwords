@@ -1,4 +1,4 @@
-package codenames
+package trapwords
 
 import (
 	"encoding/json"
@@ -6,9 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -24,14 +22,13 @@ type Server struct {
 	jslib  assets.Bundle
 	js     assets.Bundle
 	css    assets.Bundle
-	images assets.Bundle
 	other  assets.Bundle
 
 	gameIDWords []string
 
 	mu         sync.Mutex
 	games      map[string]*Game
-	imagePaths []string
+	words	   []string
 	mux        *http.ServeMux
 }
 
@@ -44,17 +41,19 @@ func (s *Server) getGame(gameID, stateID string) (*Game, bool) {
 	if !ok {
 		return nil, false
 	}
-	g = newGame(gameID, s.imagePaths, state)
+	g = newGame(gameID, s.words, state)
 	s.games[gameID] = g
 	return g, true
 }
 
-func (s *Server) getImagePaths(rw http.ResponseWriter, imagesLink string) ([]string, error) {
-	if imagesLink == "" {
-		// No link was given, use the server's default images.
-		return s.imagePaths, nil
+func (s *Server) getWordsFromLink(rw http.ResponseWriter, wordsLink string) ([]string, error) {
+	if wordsLink == "" {
+		// No link was given, use the server's default words.
+		return s.words, nil
 	}
 
+	// TODO THIS WHOLE THING
+	var imagesLink = ""
 	fmt.Printf("Trying to use custom images from %s\n", imagesLink)
 	rs, err := http.Get(imagesLink)
 	if err != nil {
@@ -151,20 +150,15 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	imagePaths, err := s.getImagePaths(rw, req.Form.Get("newGameImagesLink"))
+	words, err := s.getWordsFromLink(rw, req.Form.Get("newGameWordsLink"))
 	if err != nil {
-		fmt.Printf("Could not load in custom images\n")
-		http.Error(rw, "Unknown error encountered with custom images", 400)
+		fmt.Printf("Could not load in custom words\n")
+		http.Error(rw, "Unknown error encountered with custom words", 400)
 		return
 	}
 
-	if len(imagePaths) < 20 {
-		fmt.Printf("Insufficient images in custom source\n")
-		http.Error(rw, "Insufficient images (20 needed) available in custom source", 400)
-		return
-	}
 
-	g = newGame(gameID, imagePaths, randomState())
+	g = newGame(gameID, words, randomState())
 	s.games[gameID] = g
 	writeGame(rw, g)
 }
@@ -242,7 +236,7 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Find the existing game so we can fetch the images it used.
+	// Find the existing game so we can fetch the words it uses.
 	g, exists := s.games[request.GameID]
 
 	if !exists {
@@ -250,8 +244,8 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Create a new game with the same ID and source images from the past game but with a random state.
-	g = newGame(request.GameID, g.Images, randomState())
+	// Create a new game with the same ID and source words from the past game but with a random state.
+	g = newGame(request.GameID, g.Words, randomState())
 	s.games[request.GameID] = g
 	writeGame(rw, g)
 }
@@ -297,19 +291,9 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	var imagesAssetPath = "assets/images"
-	s.images, err = assets.Development(imagesAssetPath)
+	words, err := dictionary.Load("assets/default-words.txt")
 	if err != nil {
 		return err
-	}
-	// Hardcoding 20 is easier than defining a constants file.
-	if len(s.images.RelativePaths()) < 20 {
-		fmt.Fprintf(os.Stderr,
-			"Error: You need at least %d images in %s\n",
-			20,
-			imagesAssetPath,
-		)
-		os.Exit(1)
 	}
 
 	s.tpl, err = template.New("index").Parse(tpl)
@@ -344,19 +328,16 @@ func (s *Server) Start() error {
 	s.mux.Handle("/js/lib/", http.StripPrefix("/js/lib/", s.jslib))
 	s.mux.Handle("/js/", http.StripPrefix("/js/", s.js))
 	s.mux.Handle("/css/", http.StripPrefix("/css/", s.css))
-	s.mux.Handle("/images/", http.StripPrefix("/images/", s.images))
 	s.mux.Handle("/other/", http.StripPrefix("/other/", s.other))
 	s.mux.HandleFunc("/", s.handleIndex)
 
 	gameIDs = dictionary.Filter(gameIDs, func(s string) bool { return len(s) > 3 })
 	s.gameIDWords = gameIDs.Words()
 
+	words = dictionary.Filter(words, func(s string) bool { return len(s) > 4 })
+	s.words = words.Words()
+
 	s.games = make(map[string]*Game)
-	s.imagePaths = s.images.RelativePaths()
-	for index, element := range s.imagePaths {
-		s.imagePaths[index] = "images/" + element
-	}
-	sort.Strings(s.imagePaths)
 	s.Server.Handler = s.mux
 
 	go func() {

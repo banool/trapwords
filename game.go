@@ -1,4 +1,4 @@
-package codenames
+package trapwords
 
 import (
 	"bytes"
@@ -11,9 +11,11 @@ import (
 	"time"
 )
 
-const imagesPerGame = 20
-
 type Team int
+
+const wordsPerGame = 2
+
+const roundsPerGame = 9
 
 const (
 	Neutral Team = iota
@@ -88,7 +90,6 @@ func decodeGameState(s string) (GameState, bool) {
 func randomState() GameState {
 	return GameState{
 		Seed:     rand.Int63(),
-		Revealed: make([]bool, imagesPerGame),
 	}
 }
 
@@ -98,8 +99,8 @@ type Game struct {
 	CreatedAt    time.Time `json:"created_at"`
 	StartingTeam Team      `json:"starting_team"`
 	WinningTeam  *Team     `json:"winning_team,omitempty"`
-	Images       []string  `json:"-"`
-	RoundImages  []string  `json:"words"`
+	Words       []string   `json:"-"`
+	RoundWords  []string   `json:"words"`
 	Layout       []Team    `json:"layout"`
 }
 
@@ -134,6 +135,14 @@ func (g *Game) NextTurn() error {
 		return errors.New("game is already over")
 	}
 	g.Round++
+	if (g.Round >= roundsPerGame) {
+		// TODO Reset words
+		g.Round = 0
+	}
+	// See currentPhase in game.js
+	if (g.Round == 1) {
+
+
 	return nil
 }
 
@@ -166,25 +175,25 @@ func (g *Game) CurrentTeam() Team {
 	return g.StartingTeam.Other()
 }
 
-func newGame(id string, imagePaths []string, state GameState) *Game {
+func newGame(id string, words []string, state GameState) *Game {
 	rnd := rand.New(rand.NewSource(state.Seed))
 	game := &Game{
 		ID:           id,
 		CreatedAt:    time.Now(),
 		StartingTeam: Team(rnd.Intn(2)) + Red,
-		Images:       imagePaths,
-		RoundImages:  make([]string, 0, imagesPerGame),
-		Layout:       make([]Team, 0, imagesPerGame),
+		Words:        words,
+		RoundWords:   make([]string, 0, wordsPerGame),
+		Layout:       make([]Team, 0, wordsPerGame),
 		GameState:    state,
 	}
 
-	// Pick 25 random images.
+	// Pick 2 random words.
 	used := map[string]struct{}{}
-	for len(used) < imagesPerGame {
-		w := imagePaths[rnd.Intn(len(imagePaths))]
+	for len(used) < wordsPerGame {
+		w := words[rnd.Intn(len(words))]
 		if _, ok := used[w]; !ok {
 			used[w] = struct{}{}
-			game.RoundImages = append(game.RoundImages, w)
+			game.RoundWords = append(game.RoundWords, w)
 		}
 	}
 
