@@ -13,9 +13,11 @@ import (
 
 type Team int
 
-const wordsPerGame = 2
+const wordsPerGame = 4
 
 const roundsPerGame = 9
+
+const secondsPerGuess = 33
 
 const (
 	Neutral Team = iota
@@ -65,6 +67,7 @@ func (t Team) Repeat(n int) []Team {
 type GameState struct {
 	Seed     int64  `json:"seed"`
 	Round    int    `json:"round"`
+	GuessEnd int64  `json:"guessEnd"`
 	Revealed []bool `json:"revealed"`
 }
 
@@ -135,13 +138,13 @@ func (g *Game) NextTurn() error {
 		return errors.New("game is already over")
 	}
 	g.Round++
-	if (g.Round >= roundsPerGame) {
-		// TODO Reset words
-		g.Round = 0
-	}
 	// See currentPhase in game.js
-	if (g.Round == 1) {
-
+	if (g.Round == 2 || g.Round == 4 || g.Round == 7 || g.Round == 9) {
+		// Start timer.
+		g.GuessEnd = int64(time.Now().Unix()) + secondsPerGuess
+	} else {
+		g.GuessEnd = 0
+	}
 
 	return nil
 }
@@ -175,6 +178,20 @@ func (g *Game) CurrentTeam() Team {
 	return g.StartingTeam.Other()
 }
 
+func newWords(game *Game, words []string, state GameState) error {
+	// Pick 2 random words.
+	rnd := rand.New(rand.NewSource(state.Seed))
+	used := map[string]struct{}{}
+	for len(used) < wordsPerGame {
+		w := words[rnd.Intn(len(words))]
+		if _, ok := used[w]; !ok {
+			used[w] = struct{}{}
+			game.RoundWords = append(game.RoundWords, w)
+		}
+	}
+	return nil
+}
+
 func newGame(id string, words []string, state GameState) *Game {
 	rnd := rand.New(rand.NewSource(state.Seed))
 	game := &Game{
@@ -187,15 +204,7 @@ func newGame(id string, words []string, state GameState) *Game {
 		GameState:    state,
 	}
 
-	// Pick 2 random words.
-	used := map[string]struct{}{}
-	for len(used) < wordsPerGame {
-		w := words[rnd.Intn(len(words))]
-		if _, ok := used[w]; !ok {
-			used[w] = struct{}{}
-			game.RoundWords = append(game.RoundWords, w)
-		}
-	}
+	newWords(game, words, state)
 
 	// Pick a random permutation of team assignments.
 	var teamAssignments []Team

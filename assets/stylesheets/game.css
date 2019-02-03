@@ -98,23 +98,8 @@
     margin-left: 10px;
 }
 
-.player .board .hidden-word { cursor: pointer; }
-
-.board .neutral.revealed { background: #EDE2CC; }
-
-.cell {
-    width: 130px;
-    height: 130px;
-    box-sizing: border-box;
-    margin: 5px;
-    display: inline-block;
+.board {
     text-align: center;
-    background: #E8E8E8;
-    z-index: 1;
-    position: relative;
-    vertical-align: middle;
-    display: inline-block;
-    position: relative;
 }
 
 /* https://stackoverflow.com/a/1997397/3846032 */

@@ -77,7 +77,7 @@ window.Lobby = React.createClass({
                             onChange={this.newGameTextChange} value={this.state.newGameName} />
                         <button onClick={this.handleNewGame}>Go</button>
                         <p className ="intro">
-                            You can use your own words using the field below. See <a href="https://github.com/banool/codenames-pictures#loading-up-words">the GitHub readme</a> for information about valid link options.
+                            You can use your own words using the field below. See <a href="https://github.com/banool/trapwords#loading-up-words">the GitHub readme</a> for information about valid link options.
                         </p>
                         <input className="full" type="text" id="user-words" placeholder="Link to text file of words"
                             onChange={this.newGameWordsLinkChange} value={this.state.newGameWordsLink} />

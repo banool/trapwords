@@ -26,7 +26,7 @@ window.App = React.createClass({
             <div id="application">
                 <div id="topbar">
                     <a href={window.location.origin}>
-                        <h1>Codenames Pictures</h1>
+                        <h1>Trapwords</h1>
                     </a>
                 </div>
                 {pane}

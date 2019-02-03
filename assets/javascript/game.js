@@ -24,55 +24,90 @@ class StatusComponent extends React.Component {
                 return <p>Red team's Cluegiver is about to try to get their team to guess their word</p>;
             }
         }
+        if (this.props.phase == "gameover") {
+            return <p>Game Over! Start a new game 🤠🤠🤠</p>
+        }
     }
 };
 
 class WordComponent extends React.Component {
     // Required props: team, blueWord, redWord, phase, cluegiver, guessing
     render() {
+        if (this.props.phase == "gameover") {
+            return <p>Game Over! Start a new game 🤠🤠🤠</p>;
+        }
         if (this.props.team == null) {
             return <p>Choose a team!</p>;
         }
         if (this.props.phase == "trapwords") {
             if (this.props.team == "blue") {
-                return <p>Blue team, you are thinking of trapwords for {this.props.blueWord}</p>;
+                return <div>Blue team, you are thinking of trapwords for <h2>{this.props.blueWord}</h2></div>;
             }
             if (this.props.team == "red") {
-                return <p>Read team, you are thinking of trapwords for {this.props.redWord}</p>;
+                return <div>Red team, you are thinking of trapwords for <h2>{this.props.redWord}</h2></div>;
             }
         }
         if (this.props.phase == "blue") {
             if (this.props.team == "blue") {
                 if (this.props.cluegiver) {
-                    return <p>Blue team Cluegiver, try to get your team to guess the word {this.props.redWord}. Careful for Trapwords!</p>;
+                    return <div>Blue team Cluegiver, try to get your team to guess the word <h2>{this.props.redWord}</h2>Careful for Trapwords!</div>;
                 } else {
                     if (this.props.guessing) {
-                        return <p>Blue team, try to guess your Cluegiver's word!</p>;
+                        return <div>Blue team, try to guess your Cluegiver's word!</div>;
                     } else {
-                        return <p>Blue team, get ready to guess your Cluegiver's word!</p>;
+                        return <div>Blue team, get ready to guess your Cluegiver's word!</div>;
                     }
                 }
             }
             if (this.props.team == "red") {
-                return <p>Red team, the Blue Cluegiver is trying to make their team guess the word {this.props.redWord}. Listen out for your trapwords!</p>;
+                return <div>Red team, the Blue Cluegiver is trying to make their team guess the word <h2>{this.props.redWord}</h2>Listen out for your trapwords!</div>;
             }
         }
         if (this.props.phase == "red") {
             if (this.props.team == "red") {
                 if (this.props.cluegiver) {
-                    return <p>Red team Cluegiver, try to get your team to guess the word {this.props.blueWord}. Careful for Trapwords!</p>;
+                    return <div>Red team Cluegiver, try to get your team to guess the word <h2>{this.props.blueWord}</h2>Careful for Trapwords!</div>;
                 } else {
                     if (this.props.guessing) {
-                        return <p>Red team, try to guess your Cluegiver's word!</p>;
+                        return <div>Red team, try to guess your Cluegiver's word!</div>;
                     } else {
-                        return <p>Red team, get ready to guess your Cluegiver's word!</p>;
+                        return <div>Red team, get ready to guess your Cluegiver's word!</div>;
                     }
                 }
             }
             if (this.props.team == "blue") {
-                return <p>Blue team, the Red Cluegiver is trying to make their team guess the word {this.props.blueWord}. Listen out for your trapwords!</p>;
+                return <div>Blue team, the Red Cluegiver is trying to make their team guess the word <h2>{this.props.blueWord}</h2>Listen out for your trapwords!</div>;
             }
         }
+    }
+};
+
+class TimerComponent extends React.Component {
+    // Required props: end, guessing
+    render() {
+        if (!this.props.guessing) {
+            return<p>Timer will appear here</p>;
+        }
+        var seconds = new Date().getTime() / 1000;
+        if (seconds > this.props.end) {
+            return <p>Out of time!</p>;
+        }
+        var remaining = this.props.end - seconds;
+        return <p>{remaining.toFixed(0)} seconds remaining!</p>
+    }
+
+    tick() {
+      this.setState(prevState => ({
+        seconds: prevState.seconds + 1
+      }));
+    }
+
+    componentDidMount() {
+      this.interval = setInterval(() => this.tick(), 1000);
+    }
+
+    componentWillUnmount() {
+      clearInterval(this.interval);
     }
 };
 
@@ -163,7 +198,7 @@ window.Game = React.createClass({
     },
 
     currentPhase: function() {
-        // The server will allow the round to only ever be 0 to 5.
+        // The server will allow the round to only ever be 0 to 9.
         let round = this.state.game.round;
         // Trapwords selection phase.
         if (round == 0) { return "trapwords"; }
@@ -183,14 +218,29 @@ window.Game = React.createClass({
         // Now the blue team cluegiver gives clues for their word.
         if (round == 8) { return "blue"; }
         if (round == 9) { return "blue"; }
+        return "gameover";
+    },
+
+    guessing: function() {
+        let round = this.state.game.round;
+        if (round == 2 || round == 4 || round == 7 || round == 9) {
+            return true;
+        }
+        return false;
     },
 
     nextPhase: function() {
+        let r = this.state.game.round;
+        if (r == 1 || r == 3 || r == 6 || r == 8) {
+            this.setState({cluegiver: true});
+        }
+        if (r == 0 || r == 5) {
+            this.setState({cluegiver: false});
+        }
         $.post('/end-turn', JSON.stringify({
             game_id: this.state.game.id,
             state_id: this.state.game.state_id,
         }), (g) => { this.setState({game: g}); });
-        console.log(this.state.game.round);
     },
 
     trapwordsChosen: function() {
@@ -260,10 +310,21 @@ window.Game = React.createClass({
             nextPhaseButtonText = "Click when both teams have chosen trapwords";
         }
         if (this.currentPhase() == "blue") {
-            nextPhaseButtonText = "Blue team Cluegiver, click here when you're ready";
+            if (!this.guessing()) {
+                nextPhaseButtonText = "Blue team Cluegiver, click here when you're ready";
+            } else {
+                nextPhaseButtonText = "Blue team, click here when you're done";
+            }
         }
         if (this.currentPhase() == "red") {
-            nextPhaseButtonText = "Red team Cluegiver, click here when you're ready";
+            if (!this.guessing()) {
+                nextPhaseButtonText = "Red team Cluegiver, click here when you're ready";
+            } else {
+                nextPhaseButtonText = "Red team, click here when you're done";
+            }
+        }
+        if (this.currentPhase() == "gameover") {
+            nextPhaseButtonText = "Game Over!";
         }
         var nextPhaseButton = (<button onClick={(e) => this.nextPhase(e)} id="end-turn-btn">{nextPhaseButtonText}</button>)
 
@@ -279,21 +340,22 @@ window.Game = React.createClass({
                 </div>
                 <div id="status-line" className={this.currentPhase()}>
                     <div id="status" className="status-text">
-                        <StatusComponent phase={this.currentPhase()} guessing={this.state.guessing}/>
+                        <StatusComponent phase={this.currentPhase()} guessing={this.guessing()}/>
                     </div>
                 </div>
                 <div id="button-line">
+                    <div id="remaining"><TimerComponent guessing={this.guessing()} end={this.state.game.guessEnd}/></div>
                     {nextPhaseButton}
                     <div className="clear"></div>
                 </div>
                 <div className="board">
                   <WordComponent
                       team={this.state.team}
-                      blueWord={this.state.game.words[0]}
-                      redWord={this.state.game.words[1]}
+                      blueWord={(this.state.game.round < 5 ? this.state.game.words[0] : this.state.game.words[2])}
+                      redWord={(this.state.game.round < 5 ? this.state.game.words[1] : this.state.game.words[3])}
                       phase={this.currentPhase()}
                       cluegiver={this.state.cluegiver}
-                      guessing={this.state.game.guessing}
+                      guessing={this.guessing()}
                   />
                 </div>
                 <form id="mode-toggle" className={this.state.cluegiver ? "cluegiver-selected" : "player-selected"}>
