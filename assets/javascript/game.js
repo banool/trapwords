@@ -193,6 +193,7 @@ window.Game = React.createClass({
 
     currentPhase: function() {
         // The server will allow the round to only ever be 0 to 9.
+        let round = this.state.game.round;
         // Trapwords selection phase.
         if (round == 0) { return "trapwords"; }
         // The blue team cluegiver is about to give clues for their word.

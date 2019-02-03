@@ -10,7 +10,7 @@ import (
 	"github.com/banool/trapwords"
 )
 
-const DEFAULT_PORT = "9001"
+const DEFAULT_PORT = "9002"
 
 func main() {
 	if len(os.Args) > 2 {

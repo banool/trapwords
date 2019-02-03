@@ -52,10 +52,8 @@ func (s *Server) getWordsFromLink(rw http.ResponseWriter, wordsLink string) ([]s
 		return s.words, nil
 	}
 
-	// TODO THIS WHOLE THING
-	var imagesLink = ""
-	fmt.Printf("Trying to use custom images from %s\n", imagesLink)
-	rs, err := http.Get(imagesLink)
+	fmt.Printf("Trying to use custom words from %s\n", wordsLink)
+	rs, err := http.Get(wordsLink)
 	if err != nil {
 		http.Error(rw, "Problem with provided link", 400)
 		return nil, err
@@ -69,67 +67,17 @@ func (s *Server) getWordsFromLink(rw http.ResponseWriter, wordsLink string) ([]s
 	}
 	bodyString := string(bodyBytes)
 
-	if strings.HasSuffix(imagesLink, "txt") {
-		fmt.Printf("Text file based source\n")
+	words := strings.Split(bodyString, "\n")
 
-		// We assume that the text file is links line by line.
-		// They can either be full paths like:
-		// https://server.com/image.jpg
-		// Or paths relative to the text file location like:
-		// image.jpg
-		// Which refers to https://server.com/image.jpg
-		// if the text file was for example here:
-		// https://server.com/directorylisting.txt
-
-		links := strings.Split(bodyString, "\n")
-		validLinks := make([]string, 0, len(links))
-
-		// Remove any zero-length links.
-		for _, link := range links {
-			if len(strings.TrimSpace(link)) > 0 {
-				validLinks = append(validLinks, link)
-			}
-		}
-
-		// Testing if the links are relative or absolute site links
-		var absolute bool
-		if strings.Contains(validLinks[0], "http") {
-			absolute = true
-		} else {
-			absolute = false
-		}
-
-		if absolute {
-			return validLinks, nil
-		} else {
-			splitted := strings.Split(imagesLink, "/")
-			base := strings.Join(splitted[:len(splitted)-1], "/")
-			for index, link := range validLinks {
-				validLinks[index] = base + "/" + link
-			}
-			return validLinks, nil
-		}
-	} else {
-		fmt.Printf("Directory based source\n")
-
-		// The user has given us a non-text file.
-		// We assume it's a directory listing, specifically the one nginx produces.
-
-		splitted := strings.Split(imagesLink, "/")
-		base := strings.Join(splitted[:len(splitted)-1], "/")
-		lines := strings.Split(bodyString, "\n")
-		var links []string
-		for _, line := range lines {
-			if !strings.Contains(line, "<a href=\"") {
-				continue
-			}
-			relativeLink := strings.Split(strings.Split(" "+line, "<a href=\"")[1], "\">")[0]
-			links = append(links, base+"/"+relativeLink)
-		}
-		return links, nil
+	// Remove any zero-length words.
+	validWords := make([]string, 0, len(words))
+	for _, word := range words {
+		if len(strings.TrimSpace(word)) > 0 {
+	        validWords = append(validWords, word)
+	    }
 	}
-	// We should never get to here.
-	return nil, nil
+
+	return validWords, nil
 }
 
 // GET /game/<id>
@@ -156,6 +104,8 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "Unknown error encountered with custom words", 400)
 		return
 	}
+
+	fmt.Printf("%v", words)
 
 
 	g = newGame(gameID, words, randomState())
