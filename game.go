@@ -13,7 +13,7 @@ import (
 
 type Team int
 
-const wordsPerGame = 4
+const wordsPerGame = 2
 
 const roundsPerGame = 9
 
@@ -138,6 +138,12 @@ func (g *Game) NextTurn() error {
 		return errors.New("game is already over")
 	}
 	g.Round++
+	if (g.Round == roundsPerGame) {
+		g.Round = 0
+	}
+	if (g.Round == 0 || g.Round == 5) {
+		newWords(g, g.Words, g.GameState)
+	}
 	// See currentPhase in game.js
 	if (g.Round == 2 || g.Round == 4 || g.Round == 7 || g.Round == 9) {
 		// Start timer.
@@ -180,8 +186,9 @@ func (g *Game) CurrentTeam() Team {
 
 func newWords(game *Game, words []string, state GameState) error {
 	// Pick 2 random words.
-	rnd := rand.New(rand.NewSource(state.Seed))
+	rnd := rand.New(rand.NewSource(state.Seed % int64(time.Now().Unix())))
 	used := map[string]struct{}{}
+	game.RoundWords = make([]string, 0, wordsPerGame)
 	for len(used) < wordsPerGame {
 		w := words[rnd.Intn(len(words))]
 		if _, ok := used[w]; !ok {

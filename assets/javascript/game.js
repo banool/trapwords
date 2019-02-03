@@ -24,18 +24,12 @@ class StatusComponent extends React.Component {
                 return <p>Red team's Cluegiver is about to try to get their team to guess their word</p>;
             }
         }
-        if (this.props.phase == "gameover") {
-            return <p>Game Over! Start a new game 🤠🤠🤠</p>
-        }
     }
 };
 
 class WordComponent extends React.Component {
     // Required props: team, blueWord, redWord, phase, cluegiver, guessing
     render() {
-        if (this.props.phase == "gameover") {
-            return <p>Game Over! Start a new game 🤠🤠🤠</p>;
-        }
         if (this.props.team == null) {
             return <p>Choose a team!</p>;
         }
@@ -199,7 +193,6 @@ window.Game = React.createClass({
 
     currentPhase: function() {
         // The server will allow the round to only ever be 0 to 9.
-        let round = this.state.game.round;
         // Trapwords selection phase.
         if (round == 0) { return "trapwords"; }
         // The blue team cluegiver is about to give clues for their word.
@@ -218,7 +211,6 @@ window.Game = React.createClass({
         // Now the blue team cluegiver gives clues for their word.
         if (round == 8) { return "blue"; }
         if (round == 9) { return "blue"; }
-        return "gameover";
     },
 
     guessing: function() {
@@ -323,9 +315,6 @@ window.Game = React.createClass({
                 nextPhaseButtonText = "Red team, click here when you're done";
             }
         }
-        if (this.currentPhase() == "gameover") {
-            nextPhaseButtonText = "Game Over!";
-        }
         var nextPhaseButton = (<button onClick={(e) => this.nextPhase(e)} id="end-turn-btn">{nextPhaseButtonText}</button>)
 
         let otherTeam = 'blue';
@@ -351,8 +340,8 @@ window.Game = React.createClass({
                 <div className="board">
                   <WordComponent
                       team={this.state.team}
-                      blueWord={(this.state.game.round < 5 ? this.state.game.words[0] : this.state.game.words[2])}
-                      redWord={(this.state.game.round < 5 ? this.state.game.words[1] : this.state.game.words[3])}
+                      blueWord={this.state.game.words[0]}
+                      redWord={this.state.game.words[1]}
                       phase={this.currentPhase()}
                       cluegiver={this.state.cluegiver}
                       guessing={this.guessing()}
